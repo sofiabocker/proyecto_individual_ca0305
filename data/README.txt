@@ -1,0 +1,1 @@
+Se utiliza de la data proveniente de la librería de Python sklearn.datasets. El ejemplo en el main usa load_iris específicamente.
