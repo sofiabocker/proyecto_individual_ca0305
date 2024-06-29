@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 21 16:54:24 2024
-
 @author: sofiabocker
 """
 
@@ -93,7 +91,7 @@ class MetodoAgglomerative():
         resumen = dataset.describe()
         return resumen
     
-    def clusters(self):
+    def clusters(self, cluster):
         '''Realiza el clustering con Agglomerative y devuelve el DataFrame con las etiquetas de los clusters.
 
         Parameters
@@ -105,14 +103,19 @@ class MetodoAgglomerative():
         dataset : pd.DataFrame
             DataFrame con las etiquetas de los clusters.
         '''
+        # Cargar el dataset
         X = self.__df.data
-        agglomerative = AgglomerativeClustering()
+        
+        # Encontrar los clusters
+        agglomerative = AgglomerativeClustering(n_clusters = cluster)
         agglomerative.fit(X)
+        
+        # Convertir a un dataframe
         dataset = pd.DataFrame(X, columns = self.__df.feature_names)
         dataset['cluster'] = agglomerative.labels_
         return dataset
     
-    def graficar(self):
+    def graficar(self, cluster):
         '''Genera un pairplot del dataset con las etiquetas de los clusters.
 
         Parameters
@@ -126,73 +129,56 @@ class MetodoAgglomerative():
         -------------
         None
         '''
-        # Cargar el dataset
-        X, y = self.__df.data, self.__df.target
-        
-        # Encontrar los clusters
-        agglomerative = AgglomerativeClustering()
-        agglomerative.fit_predict(X)
-        pred = agglomerative.labels_
-        
-        # Convertir a un dataframe
-        dataset = pd.DataFrame(X, columns = self.__df.feature_names)
-        dataset['cluster'] = pred
+        dataset = self.clusters(cluster)
         
         # Graficar
         pairplot = sns.pairplot(dataset, hue = 'cluster', palette = 'Accent')
         pairplot.fig.suptitle(f"Pairplot con Agglomerative Clusters",  y = 1.02)
         plt.show()
     
-    def silhouette(self):
-        '''
+    def mejor_cluster(self):
+        '''Calcula el silhouette score para diferentes cantidades de clusters
 
         Parameters
         --------------
-        
+        None
     
         Returns
         -------------
-        
+        None
         '''
         # Cargar el dataset
-        X, y = self.__df.data, self.__df.target
+        X = self.__df.data
+        
+        for n_clusters in range(2, 11):
+            agglomerative = AgglomerativeClustering(n_clusters = n_clusters)
+            resultado = agglomerative.fit_predict(X)
+            silueta = silhouette_score(X, resultado)
+            print(f"Cantidad de clusters: {n_clusters}, Silhouette Score: {silueta}")
+        
+        return()
+    
+    def silhouette(self, cluster):
+        '''Calcula y devuelve el Silhouette Score del clustering con KMeans.
+
+        Parameters
+        --------------
+        clusters : int
+            Número de clusters.
+    
+        Returns
+        -------------
+        silueta: str
+            Silhouette Score del clustering.
+        '''
+        # Cargar el dataset
+        X = self.__df.data
         
         # Encontrar los clusters
-        agglomerative = AgglomerativeClustering()
+        agglomerative = AgglomerativeClustering(n_clusters = cluster)
         resultado = agglomerative.fit_predict(X)
         
         silueta = silhouette_score(X, resultado)
         
         return(f'Silhouette Score Agglomerative: {silueta}')
     
-    
-#iris_data = load_iris()
-#metodo = MetodoAgglomerative(iris_data)
-
-#print(metodo.tabla_resumen())
-
-#clustered_data = metodo.clusters()
-#print(clustered_data.head())
-
-#metodo.graficar()
-
-#silueta_agglo = metodo.silhouette()
-#print(silueta_agglo)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-

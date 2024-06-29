@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 21 16:54:24 2024
-
 @author: sofiabocker
 """
 
@@ -11,6 +9,7 @@ from sklearn.cluster import DBSCAN
 from sklearn.metrics import silhouette_score
 import seaborn as sns
 import pandas as pd
+import numpy as np
 
 from sklearn.datasets import load_iris, load_digits, load_wine, load_breast_cancer, load_diabetes, load_linnerud
 
@@ -108,9 +107,14 @@ class MetodoDBSCAN():
         dataset : pd.DataFrame
             DataFrame con las etiquetas de los clusters.
         '''
+        # Cargar el dataset
         X = self.__df.data
+        
+        # Encontrar los clusters
         dbscan = DBSCAN(eps = eps, min_samples = min_samples)
-        dbscan.fit(X)
+        dbscan.fit_predict(X)
+        
+        # Convertir a un dataframe
         dataset = pd.DataFrame(X, columns = self.__df.feature_names)
         dataset['cluster'] = dbscan.labels_
         return dataset
@@ -129,36 +133,60 @@ class MetodoDBSCAN():
         -------------
         None
         '''
-        # Cargar el dataset
-        X, y = self.__df.data, self.__df.target
-        
-        # Encontrar los clusters
-        dbscan = DBSCAN(eps = eps, min_samples = min_samples)
-        dbscan.fit_predict(X)
-        pred = dbscan.labels_
-        
-        # Convertir a un dataframe
-        dataset = pd.DataFrame(X, columns = self.__df.feature_names)
-        dataset['cluster'] = pred
+        dataset = self.clusters(eps, min_samples)
         
         # Graficar
         pairplot = sns.pairplot(dataset, hue = 'cluster', palette = 'Accent')
         pairplot.fig.suptitle(f"Pairplot con DBSCAN Clusters", y = 1.02)
         plt.show()
         
-    def silhouette(self, eps, min_samples):
-        '''
+    def mejor_cluster(self):
+        '''Calcula el silhouette score para diferentes cantidades de clusters
 
         Parameters
         --------------
-        
+        None
     
         Returns
         -------------
+        None
+        '''
         
+        # Cargar el dataset
+        X = self.__df.data
+        
+        eps_values = np.arange(0.3, 1.2, 0.1)
+        min_samples_values = range(2, 10)
+        
+        for eps in eps_values:
+            for min_samples in min_samples_values:
+                dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+                resultado = dbscan.fit_predict(X)
+                
+                # Calcular Silhouette Score solo si hay más de un cluster
+                if len(set(resultado)) > 1:
+                    silueta = silhouette_score(X, resultado)
+                    print(f"eps: {eps}, min_samples: {min_samples}, Silhouette Score: {silueta}")
+                else:
+                    print(f"eps: {eps}, min_samples: {min_samples}, Silhouette Score: No clusters found")
+        
+        return()
+        
+    def silhouette(self, eps, min_samples):
+        '''Calcula y devuelve el Silhouette Score del clustering con DBSCAN.
+
+        Parameters
+        --------------
+        clusters : int
+            Número de clusters.
+    
+        Returns
+        -------------
+        silueta: str
+            Silhouette Score del clustering.
         '''
         # Cargar el dataset
-        X, y = self.__df.data, self.__df.target
+        X = self.__df.data
         
         # Encontrar los clusters
         dbscan = DBSCAN(eps = eps, min_samples = min_samples)
@@ -166,32 +194,8 @@ class MetodoDBSCAN():
         
         silueta = silhouette_score(X, resultado)
         
+
+
+        
         return(f'Silhouette Score DBSCAN: {silueta}')
         
-    
-#iris_data = load_iris()
-#metodo = MetodoDBSCAN(iris_data)
-#print(metodo.tabla_resumen())
-
-#clustered_data_dbscan = metodo.clusters(eps=0.5, min_samples=5)
-#print(clustered_data_dbscan.head())
-
-#metodo.graficar(eps=0.5, min_samples=5)
-    
-#silueta_dbscan = metodo.silhouette(0.5, 5)
-#print(silueta_dbscan)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-

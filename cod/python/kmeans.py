@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 21 16:54:24 2024
-
 @author: sofiabocker
 """
 
@@ -93,111 +91,89 @@ class MetodoKMeans():
         resumen = dataset.describe()
         return resumen
     
-    def clusters(self, clusters, random):
+    def clusters(self, clusters):
         '''Realiza el clustering con KMeans y devuelve el DataFrame con las etiquetas de los clusters.
 
         Parameters
         --------------
         clusters : int
             Número de clusters.
-        random : int
-            Estado aleatorio para la inicialización de KMeans.
     
         Returns
         -------------
-        dataset : pd.DataFrame
+        dataset : pd.DataFrme
             DataFrame con las etiquetas de los clusters.
         '''
         X = self.__df.data
-        kmeans = KMeans(n_clusters = clusters, random_state = random)
-        kmeans.fit(X)
+        kmeans = KMeans(n_clusters = clusters)
+        kmeans.fit_predict(X)
         dataset = pd.DataFrame(X, columns = self.__df.feature_names)
         dataset['cluster'] = kmeans.labels_
         return dataset
     
-    def graficar(self, clusters, random):
+    def graficar(self, clusters):
         '''Genera un pairplot del dataset con las etiquetas de los clusters.
 
         Parameters
         --------------
         clusters : int
             Número de clusters.
-        random : int
-            Estado aleatorio para la inicialización de KMeans.
     
         Returns
         -------------
         None
         '''
-        # Cargar el dataset
-        X, y = self.__df.data, self.__df.target
-        
-        # Encontrar los clusters
-        kmeans = KMeans(n_clusters = clusters, random_state = random)
-        kmeans.fit_predict(X)
-        pred = kmeans.labels_
-        
-        # Convertir a un dataframe
-        dataset = pd.DataFrame(X, columns = self.__df.feature_names)
-        dataset['cluster'] = pred
+        dataset = self.clusters(clusters)
         
         # Graficar
         pairplot = sns.pairplot(dataset, hue = 'cluster', palette = 'Accent')
         pairplot.fig.suptitle(f"Pairplot con K-Means Clusters", y = 1.02)
         plt.show()
         
-    def silhouette(self, clusters, random):
-        '''
+    def mejor_cluster(self):
+        '''Calcula el silhouette score para diferentes cantidades de clusters
 
         Parameters
         --------------
-        
+        None
     
         Returns
         -------------
+        None
+        '''
         
+        # Cargar el dataset
+        X = self.__df.data
+        
+        for n_clusters in range(2, 11):
+            kmeans = KMeans(n_clusters=n_clusters)
+            resultado = kmeans.fit_predict(X)
+            silueta = silhouette_score(X, resultado)
+            print(f"Cantidad de clusters: {n_clusters}, Silhouette Score: {silueta}")
+            
+        return()
+        
+    def silhouette(self, clusters):
+        '''Calcula y devuelve el Silhouette Score del clustering con KMeans.
+
+        Parameters
+        --------------
+        clusters : int
+            Número de clusters.
+    
+        Returns
+        -------------
+        silueta: str
+            Silhouette Score del clustering.
         '''
         # Cargar el dataset
-        X, y = self.__df.data, self.__df.target
+        X = self.__df.data
         
         # Encontrar los clusters
-        kmeans = KMeans(n_clusters = clusters, random_state = random)
+        kmeans = KMeans(n_clusters = clusters)
         resultado = kmeans.fit_predict(X)
         
         silueta = silhouette_score(X, resultado)
         
         return(f'Silhouette Score KMeans: {silueta}')
         
-        
-        
-    
-#iris_data = load_iris()
-#metodo = MetodoKMeans(iris_data)
-
-#print(metodo.tabla_resumen())
-
-#clustered_data = metodo.clusters(3, 42)
-#print(clustered_data.head())
-
-#metodo.graficar(3, 42)
-
-#silueta_kmeans = metodo.silhouette(3, 42)
-#print(silueta_kmeans)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 21 16:54:24 2024
-
 @author: sofiabocker
 """
 
@@ -93,7 +91,7 @@ class MetodoGaussian():
         resumen = dataset.describe()
         return resumen
     
-    def clusters(self, components, random):
+    def clusters(self, components):
         '''Realiza el clustering con GaussianMixture y devuelve el DataFrame con las etiquetas de los clusters.
 
         Parameters
@@ -108,15 +106,20 @@ class MetodoGaussian():
         dataset : pd.DataFrame
             DataFrame con las etiquetas de los clusters.
         '''
+        # Cargar el dataset
         X = self.__df.data
-        gm = GaussianMixture(n_components = components, random_state = random)
+        
+        # Encontrar los clusters
+        gm = GaussianMixture(n_components = components)
         gm.fit(X)
         labels = gm.predict(X)
+        
+        # Convertir a un dataframe
         dataset = pd.DataFrame(X, columns = self.__df.feature_names)
         dataset['cluster'] = labels
         return dataset
     
-    def graficar(self, components, random):
+    def graficar(self, components):
         '''Genera un pairplot del dataset con las etiquetas de los clusters de GaussianMixture.
 
         Parameters
@@ -130,39 +133,54 @@ class MetodoGaussian():
         -------------
         None
         '''
-        # Cargar el dataset
-        X, y = self.__df.data, self.__df.target
-        
-        # Encontrar los clusters
-        gm = GaussianMixture(n_components = components, random_state = random)
-        gm.fit(X)
-        pred = gm.predict(X)
-        
-        # Convertir a un dataframe
-        df = pd.DataFrame(X, columns = self.__df.feature_names)
-        df['cluster'] = pred
+        dataset = self.clusters(components)
         
         # Graficar
-        pairplot = sns.pairplot(df, hue = 'cluster', palette = 'Accent')
+        pairplot = sns.pairplot(dataset, hue = 'cluster', palette = 'Accent')
         pairplot.fig.suptitle(f"Pairplot con GaussianMixture Clusters", y=1.02)
         plt.show()
         
-    def silhouette(self, components, random):
-        '''
+    def mejor_cluster(self):
+        '''Calcula el silhouette score para diferentes cantidades de clusters
 
         Parameters
         --------------
-        
+        None
     
         Returns
         -------------
+        None
+        '''
         
+        # Cargar el dataset
+        X = self.__df.data
+        
+        for n_components in range(2, 11):
+            gm = GaussianMixture(n_components = n_components)
+            resultado = gm.fit_predict(X)
+            silueta = silhouette_score(X, resultado)
+            print(f"Cantidad de clusters: {n_components}, Silhouette Score: {silueta}")
+            
+        return()
+        
+    def silhouette(self, components):
+        '''Calcula y devuelve el Silhouette Score del clustering con GaussianMixture.
+
+        Parameters
+        --------------
+        clusters : int
+            Número de clusters.
+    
+        Returns
+        -------------
+        silueta: str
+            Silhouette Score del clustering.
         '''
         # Cargar el dataset
-        X, y = self.__df.data, self.__df.target
+        X = self.__df.data
         
         # Encontrar los clusters
-        gm = GaussianMixture(n_components = components, random_state = random)
+        gm = GaussianMixture(n_components = components)
         gm.fit(X)
         resultado = gm.predict(X)
         
@@ -170,31 +188,3 @@ class MetodoGaussian():
         
         return(f'Silhouette Score GaussianMixture: {silueta}')
     
-    
-#iris_data = load_iris()
-#metodo = MetodoGaussian(iris_data)
-#print(metodo.tabla_resumen())
-
-#clustered_data_gm = metodo.clusters(3, 42)
-#print(clustered_data_gm.head())
-#metodo.graficar(3, 42)
-
-#silueta_gm = metodo.silhouette(3, 42)
-#print(silueta_gm)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
